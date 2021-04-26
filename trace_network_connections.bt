@@ -1,4 +1,4 @@
-#!/usr/local/bin/bpftrace
+#!/usr/bin/bpftrace
 
 #include <linux/in.h>
 #include <linux/in6.h>
@@ -24,7 +24,7 @@ tracepoint:syscalls:sys_enter_connect
 }
 
 tracepoint:syscalls:sys_exit_connect
-/@start[tid] && comm != "sshd" && comm != "handler.py"/
+/@start[tid] && comm != "sshd" && comm != "handler.py" && comm != "systemd-resolve"/
 {
     printf("%10d %20s", pid, comm);
 

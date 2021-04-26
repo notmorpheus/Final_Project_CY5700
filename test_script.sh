@@ -1,13 +1,37 @@
-ping 102.67.74.24 &
-#malicious IP
+#!/usr/bin/python3
+import time
+# An example script to connect to Google using socket 
+# programming in Python 
+import socket # for socket 
+import sys 
+  
+try: 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    print ("Socket successfully created")
+except socket.error as err: 
+    print ("socket creation failed with error %s" %(err))
+  
+# default port for socket 
+port = 80
+  
+try: 
+    host_ip = socket.gethostbyname('www.google.com') 
+except socket.gaierror: 
+  
+    # this means could not resolve the host 
+    print ("there was an error resolving the host")
+    sys.exit() 
+  
+# connecting to the server 
+s.connect((host_ip, port)) 
+  
+print ("the socket has successfully connected to google") 
 
-#  on a separate terminal create python server using
-#python3 -m http.server 8120 &
+#open files
+f = open("/etc/passwd", "r")
+file2 = open("myfile.txt", "w+")
+  
+# Writing to file
+file2.write("\nWriting to file :)")
 
-ls /tmp/
-echo "hello" > /tmp/testfile
-cat /tmp/testfile
-cat /etc/passwd
-rm /tmp/testfile
-curl localhost:8120
-curl localhost:8120
+time.sleep(100000)
