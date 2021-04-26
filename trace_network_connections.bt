@@ -1,0 +1,62 @@
+#!/usr/local/bin/bpftrace
+
+#include <linux/in.h>
+#include <linux/in6.h>
+
+
+//frontend logic
+/*
+BEGIN
+{
+
+     printf("%s %s ADDRESS %s\n", "PID", "PROCESS", "PORT");
+}
+*/
+
+// backend logic
+
+tracepoint:syscalls:sys_enter_connect
+ /args->uservaddr->sa_family == AF_INET ||
+   args->uservaddr->sa_family == AF_INET6/
+{
+    @sockaddr[tid] = args->uservaddr;
+    @start[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_exit_connect
+/@start[tid] && comm != "sshd" && comm != "handler.py"/
+{
+    printf("%10d %20s", pid, comm);
+
+    //v4 logic for grabbing IP and PORT
+
+    if (@sockaddr[tid]->sa_family == AF_INET) {
+            $s = (struct sockaddr_in *)@sockaddr[tid];
+
+            //flip port bits from network order to host order
+            $port = ($s->sin_port >> 8) | (($s->sin_port << 8) & 0xff00);
+            printf("%30s %40d\n", ntop(AF_INET, $s->sin_addr.s_addr), $port);
+
+    }
+
+
+    //v6 logic
+
+    else  {
+            $s6 = (struct sockaddr_in6 *)@sockaddr[tid];
+
+            // flip port bits
+            $port = ($s6-> sin6_port >> 8) | (($s6->sin6_port << 8) & 0xff00);
+            printf("%30s %40d\n", ntop(AF_INET6, $s6->sin6_addr.in6_u.u6_addr8), $port);
+
+    }
+
+    delete(@sockaddr[tid]);
+    delete(@start[tid]);
+
+}
+
+END
+{
+    clear(@sockaddr); clear(@start);
+}
